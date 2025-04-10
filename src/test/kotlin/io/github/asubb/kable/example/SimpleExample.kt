@@ -1,6 +1,6 @@
-package io.github.yourusername.kable.example
+package io.github.asubb.kable.example
 
-import io.github.yourusername.kable.Ansible
+import io.github.asubb.kable.Ansible
 
 /**
  * A simple example demonstrating how to use the Kable library.

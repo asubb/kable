@@ -9,7 +9,8 @@ Kable is a Kotlin library that provides a DSL (Domain Specific Language) wrapper
 ## Requirements
 
 - JDK 11 or higher
-- Ansible installed on the system where the application will run
+- Ansible installed on the system where the application will run:
+  - `sshpass` if using password authentication
 
 ## Installation
 

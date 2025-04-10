@@ -16,6 +16,14 @@ dependencies {
     testImplementation(kotlin("test"))
     testImplementation("io.kotest:kotest-runner-junit5:5.5.5")
     testImplementation("io.kotest:kotest-assertions-core:5.5.5")
+
+    // TestContainers
+    implementation("org.testcontainers:testcontainers:1.19.3")
+//    testImplementation("org.testcontainers:junit-jupiter:1.19.3")
+
+    // Logging
+    implementation("org.slf4j:slf4j-api:1.7.36")
+    testImplementation("ch.qos.logback:logback-classic:1.2.11")
 }
 
 java {
