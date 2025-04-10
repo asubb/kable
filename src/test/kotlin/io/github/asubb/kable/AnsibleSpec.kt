@@ -1,10 +1,9 @@
 package io.github.asubb.kable
 
+import io.github.asubb.kable.TestEnvironment.Companion.testEnvironment
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
-import java.net.InetSocketAddress
-import java.net.Socket
 
 /**
  * Tests for the Ansible DSL.
@@ -12,19 +11,19 @@ import java.net.Socket
  * The Ansible commands are executed locally but target the container.
  */
 class AnsibleSpec : DescribeSpec({
-    val container = UbuntuHostContainer.INSTANCE
+    lateinit var container: UbuntuHostContainer
+    lateinit var testEnv: TestEnvironment
 
-    beforeSpec {
-        val host = container.host
-        val sshPort = container.getMappedPort(22)
-        Socket().use { socket ->
-            // Set a timeout to avoid hanging if the port is not reachable
-            socket.connect(InetSocketAddress(host, sshPort), 5000)
+    beforeTest {
+        container = UbuntuHostContainer()
+        testEnv = testEnvironment {
+            +container
         }
-        println("SSH connection details: $host:$sshPort")
+        testEnv.start()
     }
-    afterSpec {
-        container.stop()
+
+    afterTest {
+        testEnv.stop()
     }
 
     describe("Local Ansible command execution targeting container") {
@@ -44,7 +43,55 @@ class AnsibleSpec : DescribeSpec({
                     module("ping")
                 }.execute()
 
-                println("RESULT>> $result")
+                println("RESULT>> [${container.host}:${container.getMappedPort(22)}] $result")
+                result.isSuccess shouldBe true
+                result.exitCode shouldBe 0
+                result.output shouldContain "pong"
+            }
+        }
+
+        context("with inventory") {
+            it("should execute successfully using inventory file with simple format") {
+                // Execute ansible command locally but target the container using inventory
+                val result = Ansible {
+                    // Define inventory with the container host
+                    inventory("myhosts") {
+                        +"${container.host}:${container.getMappedPort(22)}"
+                    }
+                    // Configure password authentication
+                    password("password")
+                    // Disable host key checking for testing
+                    disableHostKeyChecking()
+                    // Add host pattern (required by Ansible)
+                    hostPattern("all")
+                    // Use the ping module to check connectivity
+                    module("ping")
+                }.execute()
+
+                println("RESULT>> [${container.host}:${container.getMappedPort(22)}] $result")
+                result.isSuccess shouldBe true
+                result.exitCode shouldBe 0
+                result.output shouldContain "pong"
+            }
+
+            it("should execute successfully using inventory file with detailed format") {
+                // Execute ansible command locally but target the container using inventory
+                val result = Ansible {
+                    // Define inventory with the container host using detailed format
+                    inventory("myhosts") {
+                        host("host1", container.host, container.getMappedPort(22), "root")
+                    }
+                    // Configure password authentication
+                    password("password")
+                    // Disable host key checking for testing
+                    disableHostKeyChecking()
+                    // Add host pattern (required by Ansible)
+                    hostPattern("all")
+                    // Use the ping module to check connectivity
+                    module("ping")
+                }.execute()
+
+                println("RESULT with detailed inventory>> [${container.host}:${container.getMappedPort(22)}] $result")
                 result.isSuccess shouldBe true
                 result.exitCode shouldBe 0
                 result.output shouldContain "pong"

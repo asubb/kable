@@ -13,9 +13,9 @@ dependencies {
     implementation(kotlin("stdlib"))
     implementation(kotlin("reflect"))
 
-    testImplementation(kotlin("test"))
-    testImplementation("io.kotest:kotest-runner-junit5:5.5.5")
-    testImplementation("io.kotest:kotest-assertions-core:5.5.5")
+    implementation(kotlin("test"))
+    implementation("io.kotest:kotest-runner-junit5:5.5.5")
+    implementation("io.kotest:kotest-assertions-core:5.5.5")
 
     // TestContainers
     implementation("org.testcontainers:testcontainers:1.19.3")

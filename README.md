@@ -18,7 +18,7 @@ Add the dependency to your Gradle build file:
 
 ```kotlin
 dependencies {
-    implementation("io.github.yourusername:kable:0.1.0")
+    implementation("io.github.asubb:kable:0.1.0")
 }
 ```
 
@@ -27,11 +27,11 @@ dependencies {
 Basic usage example:
 
 ```kotlin
-import io.github.yourusername.kable.*
+import io.github.asubb.kable.*
 
 fun main() {
     // Simple execution of ansible command
-    ansible {
+    Ansible {
         // Configuration and parameters will go here
     }.execute()
 }

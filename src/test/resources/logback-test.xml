@@ -10,6 +10,6 @@
         <appender-ref ref="CONSOLE" />
     </root>
 
-    <!-- Set the logger for our TestEnvironment class to DEBUG -->
-    <logger name="io.github.asubb.kable.test" level="DEBUG" />
+    <!-- Set the logger for our tests class to DEBUG -->
+    <logger name="io.github.asubb.kable" level="DEBUG" />
 </configuration>

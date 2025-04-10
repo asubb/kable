@@ -1,5 +1,6 @@
 package io.github.asubb.kable
 
+import io.github.asubb.kable.TestEnvironment.Companion.testEnvironment
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
 import java.io.IOException
@@ -11,14 +12,18 @@ import java.net.Socket
  * Uses a simple socket connection to check if SSH port is available.
  */
 class UbuntuContainerSpec : DescribeSpec({
-    val container = UbuntuHostContainer.INSTANCE
+    val container = UbuntuHostContainer()
+
+    val testEnv = testEnvironment {
+       +container
+    }
 
     beforeSpec {
-        container.start()
+        testEnv.start()
     }
 
     afterSpec {
-        container.stop()
+        testEnv.stop()
     }
 
     describe("UbuntuHostContainer") {

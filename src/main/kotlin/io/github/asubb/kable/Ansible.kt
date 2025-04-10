@@ -1,12 +1,19 @@
 package io.github.asubb.kable
 
+import org.slf4j.LoggerFactory
+import java.io.File
+import java.nio.file.Files
+import kotlin.io.path.deleteIfExists
+
 /**
  * Main class for the Ansible DSL.
  * Provides a fluent interface for configuring and executing Ansible commands.
  */
 class Ansible private constructor() {
+    private val log = LoggerFactory.getLogger(Ansible::class.java)
     private val processBuilder = ProcessBuilder()
     private val command = mutableListOf("ansible")
+    private var inventoryFile: File? = null
 
     /**
      * Configures Ansible to target a specific host and port.
@@ -24,20 +31,6 @@ class Ansible private constructor() {
         command.add("--connection=ssh")
         command.add("--user=$user")
 
-        return this
-    }
-
-    /**
-     * Configures SSH key authentication for Ansible.
-     * @param keyFile Path to the private key file
-     * @param password Password for the private key (optional)
-     * @return This Ansible instance for method chaining
-     */
-    fun sshKey(keyFile: String, password: String? = null): Ansible {
-        command.add("--private-key=$keyFile")
-        if (password != null) {
-            command.add("--ask-pass")
-        }
         return this
     }
 
@@ -96,16 +89,55 @@ class Ansible private constructor() {
     }
 
     /**
+     * Defines an inventory for Ansible.
+     * @param name The name of the inventory
+     * @param block Configuration block for the inventory
+     * @return This Ansible instance for method chaining
+     */
+    fun inventory(name: String, block: Inventory.() -> Unit): Ansible {
+        val inventory = Inventory(name).apply(block)
+
+        // Create a temporary file for the inventory
+        val tempFile = inventoryFile ?: Files.createTempFile("inventory", ".ini").toFile()
+        tempFile.appendText("[${inventory.name}]\n")
+        tempFile.appendText(inventory.getContent())
+        tempFile.deleteOnExit() // Ensure cleanup on JVM exit
+
+        log.debug("Created temporary file for inventory ${tempFile.absolutePath}:\n${tempFile.readText()}\n")
+
+        // Store the inventory file reference for cleanup
+        inventoryFile = tempFile
+
+        // Add the inventory file to the command
+        command.add("-i")
+        command.add(tempFile.absolutePath)
+
+        return this
+    }
+
+    /**
      * Executes the configured Ansible command.
      * @return The result of the execution
      */
     fun execute(): AnsibleResult {
-        val process = processBuilder.command(command).start()
-        val exitCode = process.waitFor()
-        val output = process.inputStream.bufferedReader().readText()
-        val error = process.errorStream.bufferedReader().readText()
+        log.debug("Executing command: ${command.joinToString(" ")}")
+        try {
+            val process = processBuilder.command(command).start()
+            val exitCode = process.waitFor()
+            val output = process.inputStream.bufferedReader().readText()
+            val error = process.errorStream.bufferedReader().readText()
 
-        return AnsibleResult(exitCode, output, error)
+            return AnsibleResult(exitCode, output, error)
+        } finally {
+            // Clean up the inventory file
+            inventoryFile?.let {
+                try {
+                    it.toPath().deleteIfExists()
+                } catch (e: Exception) {
+                    // Ignore cleanup errors
+                }
+            }
+        }
     }
 
     companion object {
