@@ -6,17 +6,17 @@ import org.slf4j.LoggerFactory
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.output.Slf4jLogConsumer
 
+fun TestConfiguration.testEnvironment(block: TestEnvironment.() -> Unit): TestEnvironment {
+    return TestEnvironment().apply(block)
+}
+
 /**
  * Test environment utility class for managing test containers and logging.
  * Provides methods to capture and log container output.
  */
-class TestEnvironment private constructor() {
+class TestEnvironment internal constructor() {
     companion object {
         private val logger: Logger = LoggerFactory.getLogger(TestEnvironment::class.java)
-
-        fun TestConfiguration.testEnvironment(block: TestEnvironment.() -> Unit): TestEnvironment {
-            return TestEnvironment().apply(block)
-        }
     }
 
     private val containers = mutableListOf<GenericContainer<*>>()

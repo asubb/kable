@@ -9,11 +9,18 @@ import kotlin.io.path.deleteIfExists
  * Main class for the Ansible DSL.
  * Provides a fluent interface for configuring and executing Ansible commands.
  */
-class Ansible private constructor() {
+class Ansible internal constructor() {
     private val log = LoggerFactory.getLogger(Ansible::class.java)
     private val processBuilder = ProcessBuilder()
-    private val command = mutableListOf("ansible")
+    private val commandParams = mutableListOf<String>()
+    private var baseCommand = "ansible"
     private var inventoryFile: File? = null
+    private var playbookFile: File? = null
+    private var playbook: Playbook? = null
+    private var hostPattern: String = "all"
+    private var targetHostInfo: Triple<String, Int, String>? = null
+    private var passwordValue: String? = null
+    private var disableHostKeyCheckingFlag: Boolean = false
 
     /**
      * Configures Ansible to target a specific host and port.
@@ -23,13 +30,8 @@ class Ansible private constructor() {
      * @return This Ansible instance for method chaining
      */
     fun targetHost(host: String, port: Int, user: String = "root"): Ansible {
-        // Add inventory parameter to target the host
-        command.add("-i")
-        command.add("$host:$port,")
-
-        // Add SSH connection parameters
-        command.add("--connection=ssh")
-        command.add("--user=$user")
+        // Store the target host information
+        targetHostInfo = Triple(host, port, user)
 
         return this
     }
@@ -40,10 +42,10 @@ class Ansible private constructor() {
      * @return This Ansible instance for method chaining
      */
     fun password(password: String): Ansible {
+        // Store the password
+        passwordValue = password
         // Add the password as an environment variable
         processBuilder.environment()["ANSIBLE_PASSWORD"] = password
-        command.add("--extra-vars")
-        command.add("ansible_password=$password")
         return this
     }
 
@@ -53,7 +55,7 @@ class Ansible private constructor() {
      * @return This Ansible instance for method chaining
      */
     fun disableHostKeyChecking(): Ansible {
-        command.add("--ssh-common-args='-o StrictHostKeyChecking=no'")
+        disableHostKeyCheckingFlag = true
         return this
     }
 
@@ -63,7 +65,7 @@ class Ansible private constructor() {
      * @return This Ansible instance for method chaining
      */
     fun hostPattern(pattern: String = "all"): Ansible {
-        command.add(pattern)
+        hostPattern = pattern
         return this
     }
 
@@ -88,10 +90,17 @@ class Ansible private constructor() {
         // Store the inventory file reference for cleanup
         inventoryFile = tempFile
 
-        // Add the inventory file to the command
-        command.add("-i")
-        command.add(tempFile.absolutePath)
+        return this
+    }
 
+    /**
+     * Creates and configures a playbook.
+     * @param block Configuration block for the playbook
+     * @return This Ansible instance for method chaining
+     */
+    fun playbook(block: Playbook.() -> Unit): Ansible {
+        val pb = Playbook().apply(block)
+        playbook = pb
         return this
     }
 
@@ -102,23 +111,84 @@ class Ansible private constructor() {
      * @return The result of the execution
      */
     fun execute(module: String? = null, args: Map<String, String> = emptyMap()): AnsibleResult {
-        // If a module is specified, add it to the command
-        if (module != null) {
-            command.add("-m")
-            command.add(module)
+        // Reset command parameters for a fresh build
+        commandParams.clear()
 
-            if (args.isNotEmpty()) {
-                command.add("-a")
-                val argsString = args.entries.joinToString(" ") { (key, value) ->
-                    "$key=$value"
+        // Add the host pattern to the command parameters
+        commandParams.add(hostPattern)
+
+        // Add target host information if available
+        targetHostInfo?.let { (host, port, user) ->
+            // Add inventory parameter to target the host
+            commandParams.add("-i")
+            commandParams.add("$host:$port,")
+
+            // Add SSH connection parameters
+            commandParams.add("--connection=ssh")
+            commandParams.add("--user=$user")
+        }
+
+        // Add password if available
+        passwordValue?.let { password ->
+            commandParams.add("--extra-vars")
+            commandParams.add("ansible_password=$password")
+        }
+
+        // Add host key checking flag if disabled
+        if (disableHostKeyCheckingFlag) {
+            commandParams.add("--ssh-common-args='-o StrictHostKeyChecking=no'")
+        }
+
+        // Add the inventory file to the command if it exists
+        inventoryFile?.let {
+            commandParams.add("-i")
+            commandParams.add(it.absolutePath)
+        }
+
+        // Check if we're executing a playbook or a regular command
+        if (playbook != null) {
+            // Create a temporary file for the playbook
+            val tempFile = Files.createTempFile("playbook", ".yaml").toFile()
+            tempFile.writeText(playbook!!.toYaml())
+            tempFile.deleteOnExit() // Ensure cleanup on JVM exit
+
+            log.debug("Created temporary file for playbook ${tempFile.absolutePath}:\n${tempFile.readText()}\n")
+
+            // Store the playbook file reference for cleanup
+            playbookFile = tempFile
+
+            // Use ansible-playbook command instead of ansible
+            baseCommand = "ansible-playbook"
+
+            // Add the playbook file to the command
+            commandParams.add(tempFile.absolutePath)
+        } else {
+            // Use ansible command
+            baseCommand = "ansible"
+
+            // If a module is specified, add it to the command
+            if (module != null) {
+                commandParams.add("-m")
+                commandParams.add(module)
+
+                if (args.isNotEmpty()) {
+                    commandParams.add("-a")
+                    val argsString = args.entries.joinToString(" ") { (key, value) ->
+                        "$key=$value"
+                    }
+                    commandParams.add(argsString)
                 }
-                command.add(argsString)
             }
         }
 
-        log.debug("Executing command: ${command.joinToString(" ")}")
+
+        // Build the final command list - this will trigger the lazy property
+        val finalCommand = mutableListOf(baseCommand)
+        finalCommand.addAll(commandParams)
+
+        log.debug("Executing command: ${finalCommand.joinToString(" ")}")
         try {
-            val process = processBuilder.command(command).start()
+            val process = processBuilder.command(finalCommand).start()
             val exitCode = process.waitFor()
             val output = process.inputStream.bufferedReader().readText()
             val error = process.errorStream.bufferedReader().readText()
@@ -133,19 +203,26 @@ class Ansible private constructor() {
                     // Ignore cleanup errors
                 }
             }
-        }
-    }
 
-    companion object {
-        /**
-         * Creates a new Ansible DSL instance.
-         * @param block Configuration block for the Ansible command
-         * @return Configured Ansible instance
-         */
-        operator fun invoke(block: Ansible.() -> Unit = {}): Ansible {
-            return Ansible().apply(block)
+            // Clean up the playbook file
+            playbookFile?.let {
+                try {
+                    it.toPath().deleteIfExists()
+                } catch (e: Exception) {
+                    // Ignore cleanup errors
+                }
+            }
         }
     }
+}
+
+/**
+ * Creates a new Ansible DSL instance.
+ * @param block Configuration block for the Ansible command
+ * @return Configured Ansible instance
+ */
+fun ansible(block: Ansible.() -> Unit): Ansible {
+    return Ansible().apply(block)
 }
 
 /**

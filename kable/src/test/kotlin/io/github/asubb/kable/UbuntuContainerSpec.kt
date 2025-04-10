@@ -1,6 +1,5 @@
 package io.github.asubb.kable
 
-import io.github.asubb.kable.TestEnvironment.Companion.testEnvironment
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
 import java.io.IOException

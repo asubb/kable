@@ -1,6 +1,5 @@
 package io.github.asubb.kable
 
-import io.github.asubb.kable.TestEnvironment.Companion.testEnvironment
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
@@ -30,7 +29,7 @@ class AnsibleSpec : DescribeSpec({
         context("with host pattern but no other parameters") {
             it("should execute successfully and return output") {
                 // Execute ansible command locally but target the container
-                val result = Ansible {
+                val result = ansible {
                     // Target the container using its host and mapped SSH port
                     targetHost(container.host, container.getMappedPort(22))
                     // Configure password authentication
@@ -51,7 +50,7 @@ class AnsibleSpec : DescribeSpec({
         context("with inventory") {
             it("should execute successfully using inventory file with simple format") {
                 // Execute ansible command locally but target the container using inventory
-                val result = Ansible {
+                val result = ansible {
                     // Define inventory with the container host
                     inventory("myhosts") {
                         +"${container.host}:${container.getMappedPort(22)}"
@@ -72,7 +71,7 @@ class AnsibleSpec : DescribeSpec({
 
             it("should execute ping module directly via execute method") {
                 // Execute ansible command with ping module specified in execute
-                val result = Ansible {
+                val result = ansible {
                     // Define inventory with the container host
                     inventory("myhosts") {
                         +"${container.host}:${container.getMappedPort(22)}"
@@ -93,7 +92,7 @@ class AnsibleSpec : DescribeSpec({
 
             it("should execute successfully using inventory file with detailed format") {
                 // Execute ansible command locally but target the container using inventory
-                val result = Ansible {
+                val result = ansible {
                     // Define inventory with the container host using detailed format
                     inventory("myhosts") {
                         host("host1", container.host, container.getMappedPort(22), "root")
