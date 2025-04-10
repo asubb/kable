@@ -8,8 +8,7 @@ While new features are added update the documentation under `docs/` folder
     3. Requirements to run the application
     4. Have an README.md file with the glossary
 
-- Keep a changelog of requirements in the changelog.md file. Leave a 3-4 sentences, with header and
-  date it has added.
+- Keep a changelog of changes in the `docs/changelog.md` file. Leave a 3-4 sentences about the requirements and solution, with header and date it has added on.
 
 ## Common Libraries
 
