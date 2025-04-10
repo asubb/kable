@@ -1,5 +1,8 @@
 package io.github.asubb.kable
 
+import org.yaml.snakeyaml.DumperOptions
+import org.yaml.snakeyaml.Yaml
+
 /**
  * Represents an Ansible playbook.
  * Contains a list of tasks to be executed on specified hosts.
@@ -29,22 +32,39 @@ class Playbook {
 
     /**
      * Converts the playbook to YAML format.
+     * @return A string representation of the playbook in YAML format
      */
     internal fun toYaml(): String {
-        val sb = StringBuilder()
-        sb.appendLine("- name: $name")
-        sb.appendLine("  hosts: $hosts")
-        sb.appendLine("  tasks:")
-
+        // Build the playbook structure as a map
+        val tasksList = mutableListOf<Map<String, Any?>>()
         tasks.forEach { task ->
-            sb.appendLine("   - name: ${task.name}")
-            task.modules.forEach { module ->
-                sb.appendLine("     ${module.toYaml()}")
-            }
-        }
+            val taskMap = mutableMapOf<String, Any?>()
+            taskMap["name"] = task.name
 
-        return sb.toString()
+            task.modules.forEach { module ->
+                val moduleData = module.toYaml()
+                taskMap.putAll(moduleData)
+            }
+
+            tasksList.add(taskMap)
+        }
+        // Configure DumperOptions for readability
+        val options = DumperOptions().apply {
+            indent = 2
+            isPrettyFlow = true
+            defaultFlowStyle = DumperOptions.FlowStyle.BLOCK
+        }
+        return Yaml(options).dump(
+            listOf(
+                mapOf(
+                    "name" to name,
+                    "hosts" to hosts,
+                    "tasks" to tasksList
+                )
+            )
+        )
     }
+
 }
 
 /**
@@ -72,7 +92,7 @@ object ansibleBuiltin {
      * @return A ping module
      */
     fun ping(): Module = object : Module {
-        override fun toYaml(): String = "ansible.builtin.ping:"
+        override fun toYaml(): Map<String, Any?> = mapOf("ansible.builtin.ping" to null)
     }
 
     /**
@@ -81,19 +101,17 @@ object ansibleBuiltin {
      * @return A debug module
      */
     fun debug(msg: String): Module = object : Module {
-        override fun toYaml(): String = "ansible.builtin.debug:\n       msg: $msg"
+        override fun toYaml(): Map<String, Any?> = mapOf("ansible.builtin.debug" to mapOf("msg" to msg))
     }
 }
+
 /**
  * Base interface for Ansible modules.
  */
 interface Module {
     /**
      * Converts the module to YAML format.
+     * @return A map that can be serialized to YAML
      */
-    fun toYaml(): String
+    fun toYaml(): Map<String, Any?>
 }
-
-/**
- * Namespace for built-in Ansible modules.
- */

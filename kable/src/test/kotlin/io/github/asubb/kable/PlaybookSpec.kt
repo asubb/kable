@@ -22,11 +22,11 @@ class PlaybookSpec : DescribeSpec({
             yaml shouldContain "- name: My first play"
             yaml shouldContain "  hosts: myhosts"
             yaml shouldContain "  tasks:"
-            yaml shouldContain "   - name: Ping my hosts"
-            yaml shouldContain "     ansible.builtin.ping:"
-            yaml shouldContain "   - name: Print message"
-            yaml shouldContain "     ansible.builtin.debug:"
-            yaml shouldContain "       msg: Hello world"
+            yaml shouldContain "  - name: Ping my hosts"
+            yaml shouldContain "    ansible.builtin.ping:"
+            yaml shouldContain "  - name: Print message"
+            yaml shouldContain "    ansible.builtin.debug:"
+            yaml shouldContain "      msg: Hello world"
         }
     }
 

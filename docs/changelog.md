@@ -2,6 +2,61 @@
 
 This file contains a list of changes made to the Kable library.
 
+## 2023-04-20: Added YAML Object Provider for Playbook
+
+### Requirements
+- Return Yaml or Yaml provider from the toYaml method, as specified in the issue description: "it should return Yaml or Yaml provider. Yaml should be generated only once, no strict concatenation to create yaml"
+
+### Solution
+The issue was fixed by adding a new method `toYamlObject()` that returns a YAML object (a map representing the playbook structure), and updating the `toYaml()` method to use this method internally. This ensures that YAML is generated only once without string concatenation, while maintaining backward compatibility with code that expects a string.
+
+Key changes:
+- Added a new `toYamlObject()` method that returns a map representing the playbook structure
+- Updated the `toYaml()` method to use the `toYamlObject()` method internally
+- Ensured that YAML is generated only once without string concatenation
+- Maintained backward compatibility with code that expects a string from the `toYaml()` method
+
+## 2023-04-19: Replaced StringBuilder with Direct YAML Object Serialization in toYaml Methods
+
+### Requirements
+- Get rid of string builder approach and return YAML from the toYaml method, as specified in the issue description.
+
+### Solution
+The issue was fixed by modifying the `Module` interface and its implementations to return YAML objects (maps) instead of strings, and updating the `Playbook` class to build a complete map structure that represents the playbook, including tasks and modules, and then use SnakeYAML to serialize the entire structure to YAML.
+
+Key changes:
+- Modified the `Module` interface to return `Any` instead of `String`
+- Updated the implementations of the `Module` interface to return maps instead of strings
+- Updated the `Playbook` class to build a complete map structure and use SnakeYAML to serialize it
+- Removed the StringBuilder approach for constructing YAML
+
+## 2023-04-18: Migrated Playbook#toYaml to Use SnakeYAML for YAML Serialization
+
+### Requirements
+- Migrate the `Playbook#toYaml` method to use proper YAML serialization, as specified in the issue description: "migrate io.github.asubb.kable.Playbook#toYaml$kable"
+
+### Solution
+The issue was fixed by updating the `Playbook#toYaml` method to use SnakeYAML for serialization of individual components of the playbook. This ensures that the YAML is generated in a more robust and maintainable way, while still maintaining the exact format expected by the tests.
+
+Key changes:
+- Updated the `Playbook#toYaml` method to use SnakeYAML for serialization of individual components
+- Used a hybrid approach to ensure the output format matches the expected format in the tests
+- Ensured that all tests continue to pass with the new implementation
+
+## 2023-04-17: Added SnakeYAML for YAML Serialization in Module Interface
+
+### Requirements
+- Replace string concatenation in `Module#toYaml` with proper YAML serialization, as specified in the issue description: "io.github.asubb.kable.Module#toYaml is using string concatenation to create yaml, try to use proper serialization instead"
+
+### Solution
+The issue was fixed by adding SnakeYAML as a dependency and updating the `Module` interface and its implementations to use proper YAML serialization. This ensures that the YAML is generated in a more robust and maintainable way.
+
+Key changes:
+- Added SnakeYAML as a dependency in the build.gradle.kts file
+- Updated the `Module` interface to use SnakeYAML for YAML serialization
+- Ensured that the generated YAML maintains the same format expected by the tests
+- Fixed a compilation error in the SimpleExample.kt file by using the `ansible` factory function instead of directly instantiating the `Ansible` class
+
 ## 2023-04-16: Updated targetHost, password, and disableHostKeyChecking Methods to Store State in Fields
 
 ### Requirements

@@ -16,6 +16,9 @@ dependencies {
     // Logging
     implementation("org.slf4j:slf4j-api:1.7.36")
     testImplementation("ch.qos.logback:logback-classic:1.2.11")
+
+    // YAML
+    implementation("org.yaml:snakeyaml:2.2")
 }
 
 // Configure Maven publishing
@@ -32,14 +35,14 @@ publishing {
                 name.set("Kable")
                 description.set("A Kotlin library for Ansible automation")
                 url.set("https://github.com/asubb/kable")
-                
+
                 licenses {
                     license {
                         name.set("The Apache License, Version 2.0")
                         url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
                     }
                 }
-                
+
                 developers {
                     developer {
                         id.set("asubb")
@@ -47,7 +50,7 @@ publishing {
                         email.set("alexey@example.com")
                     }
                 }
-                
+
                 scm {
                     connection.set("scm:git:git://github.com/asubb/kable.git")
                     developerConnection.set("scm:git:ssh://github.com/asubb/kable.git")
@@ -56,7 +59,7 @@ publishing {
             }
         }
     }
-    
+
     repositories {
         maven {
             name = "localRepo"
