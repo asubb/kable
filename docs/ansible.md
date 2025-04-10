@@ -16,15 +16,15 @@ The Ansible module provides a Kotlin DSL for configuring and executing Ansible c
 ### Basic Usage
 
 ```kotlin
-import io.github.asubb.kable.Ansible
+import io.github.asubb.kable.ansible
 
-// Using the invoke operator defined in the Ansible companion object
-val ansible = Ansible()
-ansible.targetHost("example.com", 22, "root")
-ansible.password("password")
-ansible.disableHostKeyChecking()
-ansible.hostPattern("all")
-val result = ansible.execute(module = "ping")
+// Create a new Ansible instance using the ansible function
+val result = ansible {
+    targetHost("example.com", 22, "root")
+    password("password")
+    disableHostKeyChecking()
+    hostPattern("all")
+}.execute(module = "ping")
 
 println("Exit code: ${result.exitCode}")
 println("Output: ${result.output}")
@@ -34,13 +34,13 @@ println("Output: ${result.output}")
 
 You can execute the ping module directly via the `execute()` method. There are two approaches to create an Ansible instance:
 
-#### Using the Ansible.invoke { } approach
+#### Using the ansible { } function
 
 ```kotlin
-import io.github.asubb.kable.Ansible
+import io.github.asubb.kable.ansible
 
-// Create a new Ansible instance using the invoke operator
-val result = Ansible.invoke {
+// Create a new Ansible instance using the ansible function
+val result = ansible {
     inventory("myhosts") {
         +"127.0.0.1"
     }
@@ -53,10 +53,10 @@ println("Exit code: ${result.exitCode}")
 println("Output: ${result.output}")
 ```
 
-#### Using the ansible { } approach
+#### Alternative import approach
 
 ```kotlin
-import io.github.asubb.kable.Ansible.Companion.ansible
+import io.github.asubb.kable.ansible
 
 // Create a new Ansible instance using the ansible function
 val result = ansible {
@@ -84,36 +84,36 @@ You can define an inventory with a list of hosts and use it when running Ansible
 #### Simple Format
 
 ```kotlin
-import io.github.asubb.kable.Ansible
+import io.github.asubb.kable.ansible
 
-// Using the invoke operator defined in the Ansible companion object
-val ansible = Ansible()
-ansible.inventory("myhosts") {
-    +"192.168.1.1"
-    +"192.168.1.2:2222"  // Will use port 2222 for this host
-    +"192.168.1.3"
-}
-ansible.password("password")
-ansible.disableHostKeyChecking()
-ansible.hostPattern("all")
-val result = ansible.execute(module = "ping")
+// Create a new Ansible instance using the ansible function
+val result = ansible {
+    inventory("myhosts") {
+        +"192.168.1.1"
+        +"192.168.1.2:2222"  // Will use port 2222 for this host
+        +"192.168.1.3"
+    }
+    password("password")
+    disableHostKeyChecking()
+    hostPattern("all")
+}.execute(module = "ping")
 ```
 
 #### Detailed Format with ansible_host, ansible_port, and ansible_user
 
 ```kotlin
-import io.github.asubb.kable.Ansible
+import io.github.asubb.kable.ansible
 
-// Using the invoke operator defined in the Ansible companion object
-val ansible = Ansible()
-ansible.inventory("myhosts") {
-    host("host1", "192.168.1.10", 2222, "myuser")
-    host("host2", "192.168.1.11", 2200, "myuser")
-}
-ansible.password("password")
-ansible.disableHostKeyChecking()
-ansible.hostPattern("all")
-val result = ansible.execute(module = "ping")
+// Create a new Ansible instance using the ansible function
+val result = ansible {
+    inventory("myhosts") {
+        host("host1", "192.168.1.10", 2222, "myuser")
+        host("host2", "192.168.1.11", 2200, "myuser")
+    }
+    password("password")
+    disableHostKeyChecking()
+    hostPattern("all")
+}.execute(module = "ping")
 ```
 
 This will create an inventory file with the following content:
@@ -131,11 +131,11 @@ The inventory will be saved to a temporary file and used when running the Ansibl
 You can define and execute Ansible playbooks using the Kotlin DSL. The playbook will be converted to YAML format and executed using the `ansible-playbook` command.
 
 ```kotlin
-import io.github.asubb.kable.Ansible
 import io.github.asubb.kable.ansible
+import io.github.asubb.kable.ansibleBuiltin
 
-// Using the invoke operator defined in the Ansible companion object
-val result = Ansible.invoke {
+// Create a new Ansible instance using the ansible function
+val result = ansible {
     inventory("myhosts") {
         +"127.0.0.1"
     }
@@ -144,10 +144,10 @@ val result = Ansible.invoke {
         name = "My first play"
         hosts = "myhosts"
         task("Ping my hosts") {
-            +ansible.builtin.ping()
+            +ansibleBuiltin.ping()
         }
         task("Print message") {
-            +ansible.builtin.debug("Hello world")
+            +ansibleBuiltin.debug("Hello world")
         }
     }
 }.execute()

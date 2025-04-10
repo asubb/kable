@@ -9,10 +9,10 @@ This document provides examples of using the Kable library based on the tests.
 This example shows how to execute a basic Ansible command targeting a specific host:
 
 ```kotlin
-import io.github.asubb.kable.Ansible
+import io.github.asubb.kable.ansible
 
 // Execute ansible command locally but target a remote host
-val result = Ansible {
+val result = ansible {
     // Target the host using its host and SSH port
     targetHost("example.com", 22)
     // Configure password authentication
@@ -38,10 +38,10 @@ This example shows how to define an inventory and use it when running Ansible co
 #### Simple Format
 
 ```kotlin
-import io.github.asubb.kable.Ansible
+import io.github.asubb.kable.ansible
 
 // Execute ansible command locally but target hosts defined in inventory
-val result = Ansible {
+val result = ansible {
     // Define inventory with hosts using simple format
     inventory("myhosts") {
         +"192.168.1.1:22"  // The port (22) will be extracted from the string
@@ -66,10 +66,10 @@ if (result.isSuccess) {
 #### Detailed Format with ansible_host, ansible_port, and ansible_user
 
 ```kotlin
-import io.github.asubb.kable.Ansible
+import io.github.asubb.kable.ansible
 
 // Execute ansible command locally but target hosts defined in inventory
-val result = Ansible {
+val result = ansible {
     // Define inventory with hosts using detailed format
     inventory("myhosts") {
         host("host1", "192.168.1.10", 2222, "myuser")
@@ -103,10 +103,10 @@ host2 ansible_host=192.168.1.11 ansible_port=2200 ansible_user=myuser
 This example shows how to use the ping module directly via the `execute()` method:
 
 ```kotlin
-import io.github.asubb.kable.Ansible
+import io.github.asubb.kable.ansible
 
 // Execute ansible command with ping module directly
-val result = Ansible {
+val result = ansible {
     // Define inventory with hosts
     inventory("myhosts") {
         +"127.0.0.1"
@@ -137,10 +137,10 @@ ansible myhosts -m ping -i inventory.ini
 This example shows how to use a module with arguments:
 
 ```kotlin
-import io.github.asubb.kable.Ansible
+import io.github.asubb.kable.ansible
 
 // Execute ansible command with module arguments
-val result = Ansible {
+val result = ansible {
     // Target the host using its host and SSH port
     targetHost("example.com", 22)
     // Configure password authentication
@@ -166,7 +166,7 @@ if (result.isSuccess) {
 The examples above can be used with TestContainers for testing. Here's an example from the tests:
 
 ```kotlin
-import io.github.asubb.kable.Ansible
+import io.github.asubb.kable.ansible
 import io.github.asubb.kable.UbuntuHostContainer
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
@@ -176,7 +176,7 @@ val container = UbuntuHostContainer()
 container.start()
 
 // Execute ansible command locally but target the container
-val result = Ansible {
+val result = ansible {
     // Target the container using its host and mapped SSH port
     targetHost(container.host, container.getMappedPort(22))
     // Configure password authentication

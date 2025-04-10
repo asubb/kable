@@ -27,11 +27,11 @@ dependencies {
 Basic usage example:
 
 ```kotlin
-import io.github.asubb.kable.*
+import io.github.asubb.kable.ansible
 
 fun main() {
     // Simple execution of ansible command
-    Ansible {
+    ansible {
         // Configuration and parameters will go here
     }.execute()
 }
