@@ -39,9 +39,7 @@ class AnsibleSpec : DescribeSpec({
                     disableHostKeyChecking()
                     // Add host pattern (required by Ansible)
                     hostPattern("all")
-                    // Use the ping module to check connectivity
-                    module("ping")
-                }.execute()
+                }.execute(module = "ping")
 
                 println("RESULT>> [${container.host}:${container.getMappedPort(22)}] $result")
                 result.isSuccess shouldBe true
@@ -64,11 +62,30 @@ class AnsibleSpec : DescribeSpec({
                     disableHostKeyChecking()
                     // Add host pattern (required by Ansible)
                     hostPattern("all")
-                    // Use the ping module to check connectivity
-                    module("ping")
-                }.execute()
+                }.execute(module = "ping")
 
                 println("RESULT>> [${container.host}:${container.getMappedPort(22)}] $result")
+                result.isSuccess shouldBe true
+                result.exitCode shouldBe 0
+                result.output shouldContain "pong"
+            }
+
+            it("should execute ping module directly via execute method") {
+                // Execute ansible command with ping module specified in execute
+                val result = Ansible {
+                    // Define inventory with the container host
+                    inventory("myhosts") {
+                        +"${container.host}:${container.getMappedPort(22)}"
+                    }
+                    // Configure password authentication
+                    password("password")
+                    // Disable host key checking for testing
+                    disableHostKeyChecking()
+                    // Add host pattern (required by Ansible)
+                    hostPattern("all")
+                }.execute(module = "ping")
+
+                println("RESULT with direct ping module>> [${container.host}:${container.getMappedPort(22)}] $result")
                 result.isSuccess shouldBe true
                 result.exitCode shouldBe 0
                 result.output shouldContain "pong"
@@ -87,9 +104,7 @@ class AnsibleSpec : DescribeSpec({
                     disableHostKeyChecking()
                     // Add host pattern (required by Ansible)
                     hostPattern("all")
-                    // Use the ping module to check connectivity
-                    module("ping")
-                }.execute()
+                }.execute(module = "ping")
 
                 println("RESULT with detailed inventory>> [${container.host}:${container.getMappedPort(22)}] $result")
                 result.isSuccess shouldBe true

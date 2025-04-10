@@ -21,9 +21,7 @@ val result = Ansible {
     disableHostKeyChecking()
     // Add host pattern (required by Ansible)
     hostPattern("all")
-    // Use the ping module to check connectivity
-    module("ping")
-}.execute()
+}.execute(module = "ping")
 
 // Check the result
 println("Exit code: ${result.exitCode}")
@@ -56,9 +54,7 @@ val result = Ansible {
     disableHostKeyChecking()
     // Add host pattern (required by Ansible)
     hostPattern("all")
-    // Use the ping module to check connectivity
-    module("ping")
-}.execute()
+}.execute(module = "ping")
 
 // Check the result
 println("Result with inventory: ${result.combinedOutput}")
@@ -85,9 +81,7 @@ val result = Ansible {
     disableHostKeyChecking()
     // Add host pattern (required by Ansible)
     hostPattern("all")
-    // Use the ping module to check connectivity
-    module("ping")
-}.execute()
+}.execute(module = "ping")
 
 // Check the result
 println("Result with detailed inventory: ${result.combinedOutput}")
@@ -102,6 +96,40 @@ This will create an inventory file with the following content:
 [myhosts]
 host1 ansible_host=192.168.1.10 ansible_port=2222 ansible_user=myuser
 host2 ansible_host=192.168.1.11 ansible_port=2200 ansible_user=myuser
+```
+
+### Using the Ping Module Directly
+
+This example shows how to use the ping module directly via the `execute()` method:
+
+```kotlin
+import io.github.asubb.kable.Ansible
+
+// Execute ansible command with ping module directly
+val result = Ansible {
+    // Define inventory with hosts
+    inventory("myhosts") {
+        +"127.0.0.1"
+    }
+    // Configure password authentication
+    password("password")
+    // Disable host key checking for testing
+    disableHostKeyChecking()
+    // Add host pattern (required by Ansible)
+    hostPattern("all")
+}.execute(module = "ping")
+
+// Check the result
+println("Exit code: ${result.exitCode}")
+println("Output: ${result.output}")
+if (result.isSuccess) {
+    println("Command executed successfully")
+}
+```
+
+This is equivalent to running the following Ansible command:
+```shell
+ansible myhosts -m ping -i inventory.ini
 ```
 
 ### Using Module with Arguments
@@ -121,11 +149,9 @@ val result = Ansible {
     disableHostKeyChecking()
     // Add host pattern (required by Ansible)
     hostPattern("all")
-    // Use the shell module with arguments
-    module("shell", mapOf(
-        "cmd" to "echo 'Hello, World!'"
-    ))
-}.execute()
+}.execute(module = "shell", args = mapOf(
+    "cmd" to "echo 'Hello, World!'"
+))
 
 // Check the result
 println("Exit code: ${result.exitCode}")
@@ -159,9 +185,7 @@ val result = Ansible {
     disableHostKeyChecking()
     // Add host pattern (required by Ansible)
     hostPattern("all")
-    // Use the ping module to check connectivity
-    module("ping")
-}.execute()
+}.execute(module = "ping")
 
 // Check the result
 result.isSuccess shouldBe true

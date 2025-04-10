@@ -23,11 +23,36 @@ ansible.targetHost("example.com", 22, "root")
 ansible.password("password")
 ansible.disableHostKeyChecking()
 ansible.hostPattern("all")
-ansible.module("ping")
-val result = ansible.execute()
+val result = ansible.execute(module = "ping")
 
 println("Exit code: ${result.exitCode}")
 println("Output: ${result.output}")
+```
+
+### Using the Ping Module Directly
+
+You can execute the ping module directly via the `execute()` method:
+
+```kotlin
+import io.github.asubb.kable.Ansible
+
+// Create a new Ansible instance
+val result = Ansible.invoke {
+    inventory("myhosts") {
+        +"127.0.0.1"
+    }
+    password("password")
+    disableHostKeyChecking()
+    hostPattern("all")
+}.execute(module = "ping")
+
+println("Exit code: ${result.exitCode}")
+println("Output: ${result.output}")
+```
+
+This is equivalent to running the following Ansible command:
+```shell
+ansible myhosts -m ping -i inventory.ini
 ```
 
 ### Using Inventory
@@ -49,8 +74,7 @@ ansible.inventory("myhosts") {
 ansible.password("password")
 ansible.disableHostKeyChecking()
 ansible.hostPattern("all")
-ansible.module("ping")
-val result = ansible.execute()
+val result = ansible.execute(module = "ping")
 ```
 
 #### Detailed Format with ansible_host, ansible_port, and ansible_user
@@ -67,8 +91,7 @@ ansible.inventory("myhosts") {
 ansible.password("password")
 ansible.disableHostKeyChecking()
 ansible.hostPattern("all")
-ansible.module("ping")
-val result = ansible.execute()
+val result = ansible.execute(module = "ping")
 ```
 
 This will create an inventory file with the following content:
@@ -94,9 +117,8 @@ The main class for the Ansible DSL. Provides a fluent interface for configuring 
 - `password(password: String)`: Configures password authentication for Ansible.
 - `disableHostKeyChecking()`: Disables host key checking for SSH connections.
 - `hostPattern(pattern: String = "all")`: Adds a host pattern to the Ansible command.
-- `module(name: String, args: Map<String, String> = emptyMap())`: Adds a module to the Ansible command.
 - `inventory(name: String, block: Inventory.() -> Unit)`: Defines an inventory for Ansible.
-- `execute()`: Executes the configured Ansible command.
+- `execute(module: String? = null, args: Map<String, String> = emptyMap())`: Executes the configured Ansible command. Optionally, you can specify a module to execute directly, such as "ping".
 
 ### Host Class
 

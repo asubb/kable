@@ -67,26 +67,6 @@ class Ansible private constructor() {
         return this
     }
 
-    /**
-     * Adds a module to the Ansible command.
-     * @param name The name of the module to use
-     * @param args The arguments to pass to the module (optional)
-     * @return This Ansible instance for method chaining
-     */
-    fun module(name: String, args: Map<String, String> = emptyMap()): Ansible {
-        command.add("-m")
-        command.add(name)
-
-        if (args.isNotEmpty()) {
-            command.add("-a")
-            val argsString = args.entries.joinToString(" ") { (key, value) ->
-                "$key=$value"
-            }
-            command.add(argsString)
-        }
-
-        return this
-    }
 
     /**
      * Defines an inventory for Ansible.
@@ -117,9 +97,25 @@ class Ansible private constructor() {
 
     /**
      * Executes the configured Ansible command.
+     * @param module Optional module name to execute (e.g., "ping")
+     * @param args Optional arguments for the module
      * @return The result of the execution
      */
-    fun execute(): AnsibleResult {
+    fun execute(module: String? = null, args: Map<String, String> = emptyMap()): AnsibleResult {
+        // If a module is specified, add it to the command
+        if (module != null) {
+            command.add("-m")
+            command.add(module)
+
+            if (args.isNotEmpty()) {
+                command.add("-a")
+                val argsString = args.entries.joinToString(" ") { (key, value) ->
+                    "$key=$value"
+                }
+                command.add(argsString)
+            }
+        }
+
         log.debug("Executing command: ${command.joinToString(" ")}")
         try {
             val process = processBuilder.command(command).start()
