@@ -71,7 +71,9 @@ class PlaybookSpec : DescribeSpec({
             println("RESULT>> [${container.host}:${container.getMappedPort(22)}] $result")
             // The result should indicate success or at least contain "ansible-playbook"
             // in the output or error message
-            result.combinedOutput shouldContain "ansible-playbook"
+            result.isSuccess shouldBe true
+            result.exitCode shouldBe 0
+            result.output shouldContain "localhost                  : ok=3    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0"
         }
     }
 })

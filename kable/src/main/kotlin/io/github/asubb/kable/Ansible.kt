@@ -114,8 +114,6 @@ class Ansible internal constructor() {
         // Reset command parameters for a fresh build
         commandParams.clear()
 
-        // Add the host pattern to the command parameters
-        commandParams.add(hostPattern)
 
         // Add target host information if available
         targetHostInfo?.let { (host, port, user) ->
@@ -163,6 +161,9 @@ class Ansible internal constructor() {
             // Add the playbook file to the command
             commandParams.add(tempFile.absolutePath)
         } else {
+            // Add the host pattern to the command parameters
+            commandParams.add(hostPattern)
+
             // Use ansible command
             baseCommand = "ansible"
 
