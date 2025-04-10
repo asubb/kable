@@ -1,42 +1,33 @@
+// Root build.gradle.kts
 plugins {
-    kotlin("jvm") version "1.9.0"
+    kotlin("jvm") version "1.9.0" apply false
 }
 
-group = "io.github.yourusername"
-version = "0.1.0"
+allprojects {
+    group = "io.github.asubb"
+    version = "0.1.0"
 
-repositories {
-    mavenCentral()
-}
-
-dependencies {
-    implementation(kotlin("stdlib"))
-    implementation(kotlin("reflect"))
-
-    implementation(kotlin("test"))
-    implementation("io.kotest:kotest-runner-junit5:5.5.5")
-    implementation("io.kotest:kotest-assertions-core:5.5.5")
-
-    // TestContainers
-    implementation("org.testcontainers:testcontainers:1.19.3")
-//    testImplementation("org.testcontainers:junit-jupiter:1.19.3")
-
-    // Logging
-    implementation("org.slf4j:slf4j-api:1.7.36")
-    testImplementation("ch.qos.logback:logback-classic:1.2.11")
-}
-
-java {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
-}
-
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-    kotlinOptions {
-        jvmTarget = "1.8"
+    repositories {
+        mavenCentral()
     }
 }
 
-tasks.withType<Test> {
-    useJUnitPlatform()
+subprojects {
+    apply(plugin = "org.jetbrains.kotlin.jvm")
+    apply(plugin = "java")
+
+    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+        kotlinOptions {
+            jvmTarget = "1.8"
+        }
+    }
+
+    tasks.withType<Test> {
+        useJUnitPlatform()
+    }
+
+    configure<JavaPluginExtension> {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
 }
